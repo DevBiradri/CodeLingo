@@ -1,0 +1,114 @@
+import React from 'react';
+import Link from 'next/link';
+import TopBar from '../components/TopBar';
+
+export default function ProfilePage() {
+  const user = {
+    name: "OPERATIVE_01",
+    level: 14,
+    role: "Frontend Engineer",
+    xp: 4500,
+    streak: 4,
+    accuracy: 94,
+    challengesCompleted: 38,
+    recentActivity: [
+      { id: 1, action: "Solved 'Python Loop'", time: "2 hours ago", type: "success" },
+      { id: 2, action: "Failed 'React State Refactor'", time: "5 hours ago", type: "error" },
+      { id: 3, action: "Earned 'Syntax Master' Badge", time: "1 day ago", type: "achievement" },
+    ]
+  };
+
+  return (
+    <div className="bg-[#E5E7EB] text-black font-space-grotesk overflow-x-hidden min-h-screen selection:bg-black selection:text-white">
+      <TopBar title={<><span>Operative</span> — Dossier</>} />
+
+      <main className="pt-[72px] pb-32 px-6 md:px-12 min-h-screen flex flex-col items-center justify-center">
+        
+        {/* Main Profile Card */}
+        <div className="w-full max-w-3xl mt-12 bg-white border-4 border-black shadow-[16px_16px_0_black] flex flex-col relative z-10">
+          
+          {/* Header Section */}
+          <div className="flex flex-col border-b-4 border-black">
+            
+            {/* Info Block */}
+            <div className="w-full p-8 flex flex-col justify-center text-center md:text-left bg-[#FF00FF]">
+              <h1 className="text-4xl md:text-6xl font-black uppercase tracking-tighter text-white mb-2" style={{ textShadow: '4px 4px 0 #000' }}>
+                {user.name}
+              </h1>
+              <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 mb-6">
+                <span className="font-jetbrains-mono font-bold uppercase text-sm bg-black text-white px-3 py-1 border-2 border-black">
+                  Lvl {user.level}
+                </span>
+                <span className="font-jetbrains-mono font-bold uppercase text-sm bg-[#A3E635] text-black px-3 py-1 border-2 border-black">
+                  {user.role}
+                </span>
+              </div>
+              <p className="font-jetbrains-mono font-bold uppercase text-black/60 tracking-widest text-sm">
+                ID: 0x{Math.random().toString(16).slice(2, 10).toUpperCase()}
+              </p>
+            </div>
+          </div>
+
+          {/* Stats Grid */}
+          <div className="grid grid-cols-2 md:grid-cols-4 border-b-4 border-black font-jetbrains-mono uppercase">
+            
+            <div className="p-6 border-r-4 border-b-4 md:border-b-0 border-black flex flex-col items-center text-center bg-[#00FFFF] hover:bg-white transition-colors">
+              <span className="text-3xl font-black mb-1">{user.xp}</span>
+              <span className="text-xs font-bold tracking-widest">Total XP</span>
+            </div>
+            
+            <div className="p-6 border-r-0 md:border-r-4 border-b-4 md:border-b-0 border-black flex flex-col items-center text-center bg-[#FFD700] hover:bg-white transition-colors">
+              <span className="text-3xl font-black mb-1">{user.streak}</span>
+              <span className="text-xs font-bold tracking-widest">Day Streak</span>
+            </div>
+            
+            <div className="p-6 border-r-4 border-black flex flex-col items-center text-center bg-[#FF90E8] hover:bg-white transition-colors">
+              <span className="text-3xl font-black mb-1">{user.accuracy}%</span>
+              <span className="text-xs font-bold tracking-widest">Accuracy</span>
+            </div>
+            
+            <div className="p-6 flex flex-col items-center text-center bg-[#A3E635] hover:bg-white transition-colors">
+              <span className="text-3xl font-black mb-1">{user.challengesCompleted}</span>
+              <span className="text-xs font-bold tracking-widest">Cleared</span>
+            </div>
+
+          </div>
+
+          {/* Activity Log */}
+          <div className="p-8 bg-[#F3F4F6]">
+            <h2 className="font-space-grotesk text-2xl font-black uppercase mb-6 flex items-center gap-2">
+              <span className="material-symbols-outlined">history</span>
+              Recent Activity
+            </h2>
+            <div className="flex flex-col gap-4 font-jetbrains-mono">
+              {user.recentActivity.map((log) => (
+                <div key={log.id} className="flex items-center justify-between border-2 border-black bg-white p-4 shadow-[4px_4px_0_black]">
+                  <div className="flex items-center gap-4">
+                    <div className={`w-3 h-3 border-2 border-black ${
+                      log.type === 'success' ? 'bg-[#A3E635]' : 
+                      log.type === 'error' ? 'bg-[#FF3B30]' : 'bg-[#FFD700]'
+                    }`}></div>
+                    <span className="font-bold text-sm uppercase">{log.action}</span>
+                  </div>
+                  <span className="text-xs font-bold opacity-50 uppercase tracking-widest">{log.time}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Actions */}
+          <div className="flex items-center justify-between p-8 bg-white border-t-4 border-black">
+            <button className="px-6 py-3 bg-white border-4 border-black font-space-grotesk font-black uppercase tracking-widest hover:-translate-y-1 hover:shadow-[4px_4px_0_black] active:translate-y-[2px] active:shadow-[0_0_0_black] transition-all">
+              Edit Dossier
+            </button>
+            <Link href="/login" className="px-6 py-3 bg-[#FF3B30] text-white border-4 border-black font-space-grotesk font-black uppercase tracking-widest hover:-translate-y-1 hover:shadow-[4px_4px_0_black] active:translate-y-[2px] active:shadow-[0_0_0_black] transition-all">
+              Abort Session
+            </Link>
+          </div>
+
+        </div>
+
+      </main>
+    </div>
+  );
+}
