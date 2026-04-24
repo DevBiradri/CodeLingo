@@ -23,6 +23,11 @@ class UserPublic(BaseModel):
     name: str
     preferred_domains: list[str]
     preferred_languages: list[str]
+    health_points: int
+    max_health_points: int = 5
+    health_next_regen_at: datetime | None
+    health_regen_seconds: int = 180
+    experience_points: int
     created_at: datetime
 
 

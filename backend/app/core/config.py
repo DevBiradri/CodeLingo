@@ -6,7 +6,9 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
+    model_config = SettingsConfigDict(
+        env_file=".env", env_file_encoding="utf-8", extra="ignore"
+    )
 
     app_name: str = "CodeQuest API"
     environment: str = "development"
@@ -23,6 +25,12 @@ class Settings(BaseSettings):
     session_cookie_httponly: bool = True
     session_cookie_samesite: str = "lax"
     cors_origins: List[str] = ["http://localhost:3000"]
+    gemini_api_key: str | None = None
+    gemini_generation_model: str = "gemini-2.0-flash"
+    gemini_judge_model: str = "gemini-2.0-flash"
+    question_cache_ttl_seconds: int = 60 * 30
+    challenge_success_xp: int = 10
+    refactor_success_threshold: int = 70
 
 
 @lru_cache
