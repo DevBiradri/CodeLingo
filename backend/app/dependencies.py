@@ -3,11 +3,10 @@ from typing import Annotated
 from fastapi import Depends, Header, HTTPException, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.config import get_settings
-from app.db.session import get_db
-from app.models.user import User
-from app.services.auth_service import AuthService
-
+from backend.app.core.config import get_settings
+from backend.app.db.session import get_db
+from backend.app.models.user import User
+from backend.app.services.auth_service import AuthService
 
 AuthorizationHeader = Annotated[str | None, Header(alias="Authorization")]
 DatabaseSession = Annotated[AsyncSession, Depends(get_db)]
@@ -20,7 +19,9 @@ async def get_current_user(
 ) -> User:
     token = _extract_session_token(request, authorization)
     if token is None:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated"
+        )
 
     service = AuthService(db=db, settings=get_settings())
     return await service.get_user_from_session_token(token)

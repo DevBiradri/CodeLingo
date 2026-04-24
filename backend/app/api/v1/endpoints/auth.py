@@ -2,25 +2,31 @@ from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.config import get_settings
-from app.db.session import get_db
-from app.dependencies import get_current_user
-from app.schemas.auth import (
+from backend.app.core.config import get_settings
+from backend.app.db.session import get_db
+from backend.app.dependencies import get_current_user
+from backend.app.schemas.auth import (
     AuthResponse,
     RegisterRequest,
     UpdateUserRequest,
     UserPublic,
 )
-from app.services.auth_service import AuthService
+from backend.app.services.auth_service import AuthService
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 settings = get_settings()
 
 
-@router.post("/register", response_model=AuthResponse, status_code=status.HTTP_201_CREATED)
-async def register(payload: RegisterRequest, response: Response, db: AsyncSession = Depends(get_db)) -> AuthResponse:
+@router.post(
+    "/register", response_model=AuthResponse, status_code=status.HTTP_201_CREATED
+)
+async def register(
+    payload: RegisterRequest, response: Response, db: AsyncSession = Depends(get_db)
+) -> AuthResponse:
     service = AuthService(db=db, settings=settings)
-    result = await service.register(email=payload.email, name=payload.name, password=payload.password)
+    result = await service.register(
+        email=payload.email, name=payload.name, password=payload.password
+    )
     _attach_auth_cookies(response, result.access_token, result.refresh_token)
     return AuthResponse(
         user=UserPublic.model_validate(result.user),
@@ -38,7 +44,9 @@ async def login(
     db: AsyncSession = Depends(get_db),
 ) -> AuthResponse:
     service = AuthService(db=db, settings=settings)
-    result = await service.login(username=form_data.username, password=form_data.password)
+    result = await service.login(
+        username=form_data.username, password=form_data.password
+    )
     _attach_auth_cookies(response, result.access_token, result.refresh_token)
     return AuthResponse(
         user=UserPublic.model_validate(result.user),
@@ -50,11 +58,15 @@ async def login(
 
 
 @router.post("/refresh", response_model=AuthResponse)
-async def refresh(request: Request, response: Response, db: AsyncSession = Depends(get_db)) -> AuthResponse:
+async def refresh(
+    request: Request, response: Response, db: AsyncSession = Depends(get_db)
+) -> AuthResponse:
     service = AuthService(db=db, settings=settings)
     refresh_token = _extract_refresh_token(request)
     if refresh_token is None:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated"
+        )
 
     result = await service.refresh(refresh_token)
     _attach_auth_cookies(response, result.access_token, result.refresh_token)
@@ -68,7 +80,9 @@ async def refresh(request: Request, response: Response, db: AsyncSession = Depen
 
 
 @router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)
-async def logout(request: Request, response: Response, db: AsyncSession = Depends(get_db)) -> Response:
+async def logout(
+    request: Request, response: Response, db: AsyncSession = Depends(get_db)
+) -> Response:
     service = AuthService(db=db, settings=settings)
     token = _extract_any_session_token(request)
     if token is not None:
@@ -102,7 +116,9 @@ async def update_me(
     return UserPublic.model_validate(updated)
 
 
-def _attach_auth_cookies(response: Response, access_token: str, refresh_token: str) -> None:
+def _attach_auth_cookies(
+    response: Response, access_token: str, refresh_token: str
+) -> None:
     response.set_cookie(
         key=settings.session_cookie_name,
         value=access_token,

@@ -3,12 +3,12 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.v1.router import api_router
-from app.core.config import get_settings
-from app.db.base import Base
-from app.db.session import engine
-from app.models import session as session_model  # noqa: F401
-from app.models import user as user_model  # noqa: F401
+from backend.app.api.v1.router import api_router
+from backend.app.core.config import get_settings
+from backend.app.db.base import Base
+from backend.app.db.session import engine
+from backend.app.models import session as session_model  # noqa: F401
+from backend.app.models import user as user_model  # noqa: F401
 
 settings = get_settings()
 

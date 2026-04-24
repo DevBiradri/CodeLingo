@@ -9,8 +9,8 @@ from jwt import ExpiredSignatureError, InvalidTokenError
 from sqlalchemy import or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.config import Settings
-from app.core.security import (
+from backend.app.core.config import Settings
+from backend.app.core.security import (
     create_session_jwt,
     decode_session_jwt,
     generate_session_jti,
@@ -20,8 +20,8 @@ from app.core.security import (
     slugify_username,
     verify_password,
 )
-from app.models.session import Session
-from app.models.user import User
+from backend.app.models.session import Session
+from backend.app.models.user import User
 
 
 @dataclass(slots=True)
@@ -68,7 +68,12 @@ class AuthService:
         await self.db.commit()
         await self.db.refresh(user)
         await self.db.refresh(session)
-        return AuthResult(user=user, session=session, access_token=access_token, refresh_token=refresh_token)
+        return AuthResult(
+            user=user,
+            session=session,
+            access_token=access_token,
+            refresh_token=refresh_token,
+        )
 
     async def login(self, username: str, password: str) -> AuthResult:
         normalized_username = username.strip().lower()
@@ -95,18 +100,31 @@ class AuthService:
         self.db.add(session)
         await self.db.commit()
         await self.db.refresh(session)
-        return AuthResult(user=user, session=session, access_token=access_token, refresh_token=refresh_token)
+        return AuthResult(
+            user=user,
+            session=session,
+            access_token=access_token,
+            refresh_token=refresh_token,
+        )
 
     async def refresh(self, raw_token: str) -> AuthResult:
         try:
-            claims = decode_session_jwt(raw_token, self.settings.secret_key, self.settings.jwt_algorithm)
+            claims = decode_session_jwt(
+                raw_token, self.settings.secret_key, self.settings.jwt_algorithm
+            )
         except ExpiredSignatureError as exc:
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Session expired") from exc
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED, detail="Session expired"
+            ) from exc
         except InvalidTokenError as exc:
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid session") from exc
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid session"
+            ) from exc
 
         if claims.get("type") != "refresh":
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid session")
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid session"
+            )
 
         session = await self.db.scalar(
             select(Session).where(
@@ -116,24 +134,34 @@ class AuthService:
             )
         )
         if session is None:
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid session")
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid session"
+            )
 
         now = datetime.now(timezone.utc)
         if session.refresh_expires_at <= now:
             session.revoked_at = now
             await self.db.commit()
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Session expired")
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED, detail="Session expired"
+            )
 
         user = await self.db.get(User, session.user_id)
         if user is None or not user.is_active:
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Inactive account")
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED, detail="Inactive account"
+            )
 
         access_jti = generate_session_jti()
         refresh_jti = generate_session_jti()
         session.access_jti_hash = hash_session_identifier(access_jti)
         session.refresh_jti_hash = hash_session_identifier(refresh_jti)
-        session.access_expires_at = now + timedelta(minutes=self.settings.session_ttl_minutes)
-        session.refresh_expires_at = now + timedelta(minutes=self.settings.refresh_session_ttl_minutes)
+        session.access_expires_at = now + timedelta(
+            minutes=self.settings.session_ttl_minutes
+        )
+        session.refresh_expires_at = now + timedelta(
+            minutes=self.settings.refresh_session_ttl_minutes
+        )
         session.last_used_at = now
 
         access_token = create_session_jwt(
@@ -157,34 +185,62 @@ class AuthService:
 
         await self.db.commit()
         await self.db.refresh(session)
-        return AuthResult(user=user, session=session, access_token=access_token, refresh_token=refresh_token)
+        return AuthResult(
+            user=user,
+            session=session,
+            access_token=access_token,
+            refresh_token=refresh_token,
+        )
 
     async def logout(self, raw_token: str) -> None:
         try:
-            claims = decode_session_jwt(raw_token, self.settings.secret_key, self.settings.jwt_algorithm, verify_exp=False)
+            claims = decode_session_jwt(
+                raw_token,
+                self.settings.secret_key,
+                self.settings.jwt_algorithm,
+                verify_exp=False,
+            )
         except InvalidTokenError as exc:
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid session") from exc
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid session"
+            ) from exc
 
         if claims.get("type") not in {"access", "refresh"}:
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid session")
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid session"
+            )
 
-        session = await self.db.scalar(select(Session).where(Session.id == claims["sid"], Session.revoked_at.is_(None)))
+        session = await self.db.scalar(
+            select(Session).where(
+                Session.id == claims["sid"], Session.revoked_at.is_(None)
+            )
+        )
         if session is None:
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid session")
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid session"
+            )
 
         session.revoked_at = datetime.now(timezone.utc)
         await self.db.commit()
 
     async def get_user_from_session_token(self, raw_token: str) -> User:
         try:
-            claims = decode_session_jwt(raw_token, self.settings.secret_key, self.settings.jwt_algorithm)
+            claims = decode_session_jwt(
+                raw_token, self.settings.secret_key, self.settings.jwt_algorithm
+            )
         except ExpiredSignatureError as exc:
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Session expired") from exc
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED, detail="Session expired"
+            ) from exc
         except InvalidTokenError as exc:
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid session") from exc
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid session"
+            ) from exc
 
         if claims.get("type") != "access":
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid session")
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid session"
+            )
 
         session = await self.db.scalar(
             select(Session).where(
@@ -230,22 +286,33 @@ class AuthService:
     ) -> User:
         user = await self.db.get(User, user_id)
         if user is None or not user.is_active:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
+            )
 
         if email is not None:
             normalized_email = normalize_email(email)
-            existing_by_email = await self.db.scalar(select(User).where(User.email == normalized_email, User.id != user.id))
+            existing_by_email = await self.db.scalar(
+                select(User).where(User.email == normalized_email, User.id != user.id)
+            )
             if existing_by_email is not None:
-                raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Email already in use")
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT, detail="Email already in use"
+                )
             user.email = normalized_email
 
         if username is not None:
             normalized_username = username.strip().lower()
             existing_by_username = await self.db.scalar(
-                select(User).where(User.username == normalized_username, User.id != user.id)
+                select(User).where(
+                    User.username == normalized_username, User.id != user.id
+                )
             )
             if existing_by_username is not None:
-                raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Username already in use")
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail="Username already in use",
+                )
             user.username = normalized_username
 
         if name is not None:
@@ -258,8 +325,13 @@ class AuthService:
             user.preferred_languages = self._normalize_unique_list(preferred_languages)
 
         if new_password is not None:
-            if current_password is None or not verify_password(current_password, user.password_hash):
-                raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid current password")
+            if current_password is None or not verify_password(
+                current_password, user.password_hash
+            ):
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="Invalid current password",
+                )
             user.password_hash = hash_password(new_password)
 
             # Invalidate existing sessions after password changes.
@@ -287,10 +359,14 @@ class AuthService:
 
         return candidate
 
-    def _build_session_bundle(self, user_id: str, session_id: str, access_jti: str) -> tuple[Session, str, str]:
+    def _build_session_bundle(
+        self, user_id: str, session_id: str, access_jti: str
+    ) -> tuple[Session, str, str]:
         now = datetime.now(timezone.utc)
         access_expires_at = now + timedelta(minutes=self.settings.session_ttl_minutes)
-        refresh_expires_at = now + timedelta(minutes=self.settings.refresh_session_ttl_minutes)
+        refresh_expires_at = now + timedelta(
+            minutes=self.settings.refresh_session_ttl_minutes
+        )
         refresh_jti = generate_session_jti()
         session = Session(
             id=session_id,
