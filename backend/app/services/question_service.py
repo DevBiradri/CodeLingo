@@ -38,9 +38,9 @@ class QuestionService:
         self.progress_service = ProgressService(db)
 
     async def generate_question(
-        self, payload: GenerateQuestionRequest
+        self, payload: GenerateQuestionRequest, language: str
     ) -> GenerateQuestionResponse:
-        generated = await self.llm.generate_question(payload)
+        generated = await self.llm.generate_question(payload, language)
         key = self.cache.put(generated)
         public_question = self._to_public_question(generated)
         return GenerateQuestionResponse(question_key=key, question=public_question)
