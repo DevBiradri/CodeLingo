@@ -57,8 +57,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [refreshAuth]);
 
   const logout = useCallback(async () => {
-    await logoutUser();
-    setUser(null);
+    try {
+      await logoutUser();
+    } catch (e) {
+      console.warn("Logout API failed, continuing with local logout", e);
+    } finally {
+      setUser(null);
+    }
   }, []);
 
   const value: AuthContextValue = {

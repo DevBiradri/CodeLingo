@@ -5,13 +5,15 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import TopBar from '../components/TopBar';
 import { useAuth } from '../../lib/auth-context';
-import { getMyProgress, ProgressResponse } from '../../lib/api';
+import { getMyProgress, ProgressResponse, updateLanguage } from '../../lib/api';
 
 export default function ProfilePage() {
-  const { user, logout } = useAuth();
+  const { user, logout, setUser } = useAuth();
   const router = useRouter();
   const [progress, setProgress] = useState<ProgressResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isUpdatingLang, setIsUpdatingLang] = useState(false);
+  const [langError, setLangError] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchProgress() {
@@ -113,8 +115,54 @@ export default function ProfilePage() {
             </div>
           </div>
 
+          {/* Language Selection */}
+          <div className="p-8 bg-white border-t-4 border-black border-b-4 border-black">
+            <h2 className="font-space-grotesk text-2xl font-black uppercase mb-6 flex items-center gap-2">
+              <span className="material-symbols-outlined">language</span>
+              System Language
+            </h2>
+            
+            {langError && (
+              <div className="mb-4 text-red-500 font-jetbrains-mono text-sm font-bold bg-red-50 border-2 border-red-500 p-2">
+                {langError}
+              </div>
+            )}
+            
+            <div className="flex flex-wrap gap-4">
+              {['Python', 'JavaScript', 'Go', 'C++', 'Rust'].map(lang => {
+                const isSelected = user?.preferred_languages?.includes(lang);
+                return (
+                  <button
+                    key={lang}
+                    disabled={isUpdatingLang || isSelected}
+                    onClick={async () => {
+                      setIsUpdatingLang(true);
+                      setLangError(null);
+                      try {
+                        const updatedUser = await updateLanguage(lang);
+                        setUser(updatedUser);
+                      } catch(err) {
+                        setLangError(err instanceof Error ? err.message : "Failed to update language");
+                      } finally {
+                        setIsUpdatingLang(false);
+                      }
+                    }}
+                    className={`px-6 py-3 font-jetbrains-mono font-black text-lg border-4 transition-all ${
+                      isSelected
+                        ? 'bg-[#A3E635] border-black shadow-[4px_4px_0_black] -translate-y-1'
+                        : 'bg-[#F3F4F6] border-black hover:bg-black hover:text-white hover:-translate-y-1 shadow-[4px_4px_0_black]'
+                    }`}
+                  >
+                    {lang}
+                  </button>
+                );
+              })}
+            </div>
+            {isUpdatingLang && <p className="mt-4 font-jetbrains-mono text-sm animate-pulse text-black font-bold">Syncing with Mainframe...</p>}
+          </div>
+
           {/* Actions */}
-          <div className="flex items-center justify-center p-8 bg-white border-t-4 border-black">
+          <div className="flex items-center justify-center p-8 bg-[#F3F4F6]">
             <button 
               onClick={handleLogout}
               className="px-12 py-4 bg-[#FF3B30] text-white border-4 border-black font-space-grotesk font-black uppercase tracking-widest hover:-translate-y-1 hover:shadow-[4px_4px_0_black] active:translate-y-[2px] active:shadow-[0_0_0_black] transition-all"

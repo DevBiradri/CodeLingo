@@ -1,7 +1,12 @@
+"use client";
+
 import React from 'react';
 import Link from 'next/link';
+import { useAuth } from '../lib/auth-context';
 
 export default function Home() {
+  const { isAuthenticated } = useAuth();
+  
   return (
     <div className="bg-[#E5E7EB] text-black font-space-grotesk selection:bg-black selection:text-white pb-24 md:pb-0 relative overflow-hidden min-h-screen">
       
@@ -25,12 +30,25 @@ export default function Home() {
 
         <div className="flex items-center gap-6">
           <div className="hidden md:flex items-center gap-4 mr-2">
-            <Link href="/login" className="font-jetbrains-mono font-black text-black hover:bg-[#00FFFF] px-4 py-2 border-4 border-black uppercase tracking-widest text-xs transition-colors shadow-[4px_4px_0_black] hover:-translate-y-1 hover:shadow-[6px_6px_0_black] active:translate-y-[2px] active:shadow-[0_0_0_black]">
-              Login
-            </Link>
-            <Link href="/register" className="px-5 py-2 bg-[#FFD700] border-4 border-black font-jetbrains-mono font-black text-black uppercase tracking-widest text-xs transition-all shadow-[4px_4px_0_black] hover:-translate-y-1 hover:shadow-[6px_6px_0_black] active:translate-y-[2px] active:shadow-[0_0_0_black]">
-              Join
-            </Link>
+            {!isAuthenticated ? (
+              <>
+                <Link href="/login" className="font-jetbrains-mono font-black text-black hover:bg-[#00FFFF] px-4 py-2 border-4 border-black uppercase tracking-widest text-xs transition-colors shadow-[4px_4px_0_black] hover:-translate-y-1 hover:shadow-[6px_6px_0_black] active:translate-y-[2px] active:shadow-[0_0_0_black]">
+                  Login
+                </Link>
+                <Link href="/register" className="px-5 py-2 bg-[#FFD700] border-4 border-black font-jetbrains-mono font-black text-black uppercase tracking-widest text-xs transition-all shadow-[4px_4px_0_black] hover:-translate-y-1 hover:shadow-[6px_6px_0_black] active:translate-y-[2px] active:shadow-[0_0_0_black]">
+                  Join
+                </Link>
+              </>
+            ) : (
+              <>
+                <Link href="/map" className="font-jetbrains-mono font-black text-black hover:bg-[#A3E635] px-4 py-2 border-4 border-black uppercase tracking-widest text-xs transition-colors shadow-[4px_4px_0_black] hover:-translate-y-1 hover:shadow-[6px_6px_0_black] active:translate-y-[2px] active:shadow-[0_0_0_black]">
+                  Map
+                </Link>
+                <Link href="/profile" className="px-5 py-2 bg-[#FF00FF] text-white border-4 border-black font-jetbrains-mono font-black uppercase tracking-widest text-xs transition-all shadow-[4px_4px_0_black] hover:-translate-y-1 hover:shadow-[6px_6px_0_black] active:translate-y-[2px] active:shadow-[0_0_0_black]">
+                  Profile
+                </Link>
+              </>
+            )}
           </div>
           <div className="flex items-center gap-4 border-l-4 border-black pl-6 h-10">
             <span className="material-symbols-outlined text-black font-black text-2xl" style={{ fontVariationSettings: "'FILL' 1" }}>local_fire_department</span>
@@ -60,8 +78,8 @@ export default function Home() {
           </p>
           
           <div className="flex flex-col sm:flex-row gap-6 justify-center items-center w-full sm:w-auto">
-            <Link href="/register" className="w-full sm:w-auto h-20 px-12 bg-[#FF00FF] border-4 border-black text-white font-space-grotesk text-2xl font-black uppercase tracking-widest flex items-center justify-center gap-3 shadow-[8px_8px_0_black] hover:-translate-y-2 hover:translate-x-[-2px] hover:shadow-[12px_12px_0_black] active:translate-y-[4px] active:translate-x-[4px] active:shadow-[0px_0px_0px_black] transition-all">
-              Start Learning
+            <Link href={isAuthenticated ? "/map" : "/register"} className="w-full sm:w-auto h-20 px-12 bg-[#FF00FF] border-4 border-black text-white font-space-grotesk text-2xl font-black uppercase tracking-widest flex items-center justify-center gap-3 shadow-[8px_8px_0_black] hover:-translate-y-2 hover:translate-x-[-2px] hover:shadow-[12px_12px_0_black] active:translate-y-[4px] active:translate-x-[4px] active:shadow-[0px_0px_0px_black] transition-all">
+              {isAuthenticated ? "Continue Learning" : "Start Learning"}
               <span className="material-symbols-outlined text-4xl">bolt</span>
             </Link>
           </div>
@@ -158,8 +176,8 @@ export default function Home() {
           <p className="font-jetbrains-mono text-xl font-bold text-black mb-14 max-w-2xl mx-auto leading-relaxed bg-white border-4 border-black p-4 shadow-[6px_6px_0_black]">
             Join thousands of learners worldwide who have transformed their coding journey into a fun adventure.
           </p>
-          <Link href="/register" className="h-24 px-16 bg-black text-white font-space-grotesk text-3xl font-black uppercase tracking-widest border-4 border-black shadow-[12px_12px_0_black] hover:-translate-y-2 hover:translate-x-[-2px] hover:shadow-[16px_16px_0_black] active:translate-y-[4px] active:translate-x-[4px] active:shadow-[0_0_0_black] transition-all flex items-center justify-center group transform -rotate-1">
-            Get Started
+          <Link href={isAuthenticated ? "/map" : "/register"} className="h-24 px-16 bg-black text-white font-space-grotesk text-3xl font-black uppercase tracking-widest border-4 border-black shadow-[12px_12px_0_black] hover:-translate-y-2 hover:translate-x-[-2px] hover:shadow-[16px_16px_0_black] active:translate-y-[4px] active:translate-x-[4px] active:shadow-[0_0_0_black] transition-all flex items-center justify-center group transform -rotate-1">
+            {isAuthenticated ? "Continue Mission" : "Get Started"}
           </Link>
         </div>
       </section>

@@ -34,7 +34,11 @@ export default function LoginPage() {
     try {
       const data = await loginUser(username.trim(), password);
       setUser(data.user);
-      router.push("/choose-language");
+      if (data.user.preferred_languages && data.user.preferred_languages.length > 0) {
+        router.push("/map");
+      } else {
+        router.push("/choose-language");
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Login failed. Please try again.");
     } finally {
