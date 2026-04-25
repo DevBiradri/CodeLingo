@@ -205,7 +205,7 @@ const skillTree = [
 export default function SkillTreeMap() {
   const { isAuthenticated } = useAuth();
   const [progress, setProgress] = useState<ProgressResponse | null>(null);
-  const [selectedSubtopic, setSelectedSubtopic] = useState<{name: string, tip: string, link: string, mainTopic: string} | null>(null);
+  const [selectedSubtopic, setSelectedSubtopic] = useState<{name: string, tip: string, link: string, mainTopic: string, completed: number} | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -250,7 +250,7 @@ export default function SkillTreeMap() {
             </div>
             
             <Link 
-              href={`${selectedSubtopic.link}?topic=${encodeURIComponent(selectedSubtopic.mainTopic)}&subtopic=${encodeURIComponent(selectedSubtopic.name)}&tip=${encodeURIComponent(selectedSubtopic.tip)}`}
+              href={`${selectedSubtopic.link}?topic=${encodeURIComponent(selectedSubtopic.mainTopic)}&subtopic=${encodeURIComponent(selectedSubtopic.name)}&tip=${encodeURIComponent(selectedSubtopic.tip)}&completed=${selectedSubtopic.completed}`}
               className="block w-full text-center bg-[#00FFFF] border-4 border-black px-6 py-4 text-xl font-black font-space-grotesk tracking-widest uppercase hover:-translate-y-1 hover:shadow-[6px_6px_0_black] active:translate-y-[2px] active:shadow-[0_0_0_black] transition-all"
             >
               Initiate Mission
@@ -361,7 +361,7 @@ export default function SkillTreeMap() {
                           key={i} 
                           onClick={() => {
                             if (!isSubtopicLocked) {
-                              setSelectedSubtopic({ ...sub, mainTopic: node.title });
+                              setSelectedSubtopic({ ...sub, mainTopic: node.title, completed: completedCount });
                             }
                           }}
                           disabled={isSubtopicLocked}

@@ -10,6 +10,7 @@ function ChallengeStartContent() {
   const mainTopic = searchParams.get('topic') || 'General Programming';
   const subtopic = searchParams.get('subtopic') || 'Core';
   const tip = searchParams.get('tip') || '';
+  const completed = parseInt(searchParams.get('completed') || '0', 10);
 
   useEffect(() => {
     async function startMission() {
@@ -21,7 +22,14 @@ function ChallengeStartContent() {
           educational_tip: tip
         });
 
-        const challenge = data.question.challenges[0];
+        // Determine which index to start at based on what they already completed
+        let startIndex = completed;
+        if (startIndex >= data.question.challenges.length) {
+          // If somehow they completed 3 but it still routed here, just put them at the end or start over
+          startIndex = data.question.challenges.length - 1;
+        }
+
+        const challenge = data.question.challenges[startIndex];
         const type = challenge.type;
 
         // Construct the base URL for redirection
@@ -35,7 +43,7 @@ function ChallengeStartContent() {
         params.set('subtopic', subtopic);
         params.set('tip', tip);
         params.set('key', data.question_key);
-        params.set('index', '0');
+        params.set('index', startIndex.toString());
         
         router.replace(`${targetPath}?${params.toString()}`);
       } catch (error) {
@@ -45,14 +53,14 @@ function ChallengeStartContent() {
     }
 
     startMission();
-  }, [router, mainTopic, subtopic, tip]);
+  }, [router, mainTopic, subtopic, tip, completed]);
 
   return (
-    <div className="bg-[#E5E7EB] min-h-screen flex items-center justify-center font-space-grotesk">
-      <div className="bg-white border-4 border-black p-8 shadow-[8px_8px_0_black] text-center">
-        <h2 className="text-2xl font-black uppercase mb-4 animate-pulse">Syncing Mission Protocol...</h2>
+    <div className="bg-[#E5E7EB] min-h-screen flex items-center justify-center font-space-grotesk text-black">
+      <div className="bg-white border-4 border-black p-8 shadow-[8px_8px_0_black] text-center text-black">
+        <h2 className="text-2xl font-black uppercase mb-4 animate-pulse text-black">Syncing Mission Protocol...</h2>
         <div className="w-16 h-16 border-4 border-black border-t-[#FF00FF] rounded-full animate-spin mx-auto"></div>
-        <p className="mt-4 font-jetbrains-mono text-sm font-bold uppercase">Identifying Challenge Type</p>
+        <p className="mt-4 font-jetbrains-mono text-sm font-bold uppercase text-black">Identifying Challenge Type</p>
       </div>
     </div>
   );
@@ -60,7 +68,7 @@ function ChallengeStartContent() {
 
 export default function ChallengeStart() {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={<div className="min-h-screen bg-[#E5E7EB] flex items-center justify-center text-black text-2xl font-black font-space-grotesk uppercase">Loading...</div>}>
       <ChallengeStartContent />
     </Suspense>
   );
