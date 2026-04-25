@@ -29,17 +29,14 @@ function ChallengeStartContent() {
         if (type === 'drag_and_drop') targetPath = '/challenge/build';
         if (type === 'refactor') targetPath = '/challenge/refactor';
 
-        // Redirect to the appropriate UI with the SAME parameters
+        // Redirect to the appropriate UI with the SAME parameters + the cache key and index
         const params = new URLSearchParams();
         params.set('topic', mainTopic);
         params.set('subtopic', subtopic);
         params.set('tip', tip);
+        params.set('key', data.question_key);
+        params.set('index', '0');
         
-        // We've already "generated" it once, but the challenge pages fetch it again.
-        // To avoid inconsistency if the backend is random, we ideally would pass the data.
-        // However, the current challenge pages are designed to fetch on mount.
-        // The QuestionCache in the backend handles this by returning the same question
-        // for the same (user, topic, subtopic) within the TTL.
         router.replace(`${targetPath}?${params.toString()}`);
       } catch (error) {
         console.error("Failed to route challenge:", error);

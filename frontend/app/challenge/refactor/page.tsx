@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import Editor from '@monaco-editor/react';
 import TopBar from '../../components/TopBar';
-import { generateQuestion, verifyAnswer, GenerateQuestionResponse, VerifyQuestionResponse, RefactorChallenge } from '../../../lib/api';
+import { fetchQuestionByKey, verifyAnswer, GenerateQuestionResponse, VerifyQuestionResponse, RefactorChallenge, PublicQuestion } from '../../../lib/api';
 import SuccessScreen from '../../components/SuccessScreen';
 import ErrorModal from '../../components/ErrorModal';
 
@@ -13,8 +13,10 @@ function RefactorChallengeContent() {
   const mainTopic = searchParams.get('topic') || 'General Programming';
   const subtopic = searchParams.get('subtopic') || 'Optimization';
   const tip = searchParams.get('tip') || 'Improve the code structure.';
+  const questionKey = searchParams.get('key');
+  const challengeIndex = parseInt(searchParams.get('index') || '2');
 
-  const [questionData, setQuestionData] = useState<GenerateQuestionResponse | null>(null);
+  const [questionData, setQuestionData] = useState<{question_key: string, question: PublicQuestion} | null>(null);
   const [code, setCode] = useState("");
   const [isTerminalOpen, setIsTerminalOpen] = useState(false);
   const [terminalOutput, setTerminalOutput] = useState<string[]>([]);
@@ -27,14 +29,13 @@ function RefactorChallengeContent() {
     setIsLoading(true);
     setError(null);
     try {
-      const data = await generateQuestion({ 
-        main_topic: mainTopic,
-        subtopic: subtopic,
-        educational_tip: tip
-      });
-      setQuestionData(data);
-      const challenge = data.question.challenges[0] as RefactorChallenge;
-      setCode(challenge.initial_code || "");
+      if (!questionKey) throw new Error("Missing mission key.");
+      const data = await fetchQuestionByKey(questionKey);
+      setQuestionData({ question_key: questionKey, question: data });
+      if (data.challenges && data.challenges[challengeIndex]) {
+        const challenge = data.challenges[challengeIndex] as RefactorChallenge;
+        setCode(challenge.initial_code || "");
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load mission.");
     } finally {
@@ -44,7 +45,7 @@ function RefactorChallengeContent() {
 
   useEffect(() => {
     fetchQuestion();
-  }, [mainTopic, subtopic, tip]);
+  }, [questionKey]);
 
   const handleRunCode = () => {
     setIsTerminalOpen(true);
@@ -65,7 +66,7 @@ function RefactorChallengeContent() {
     try {
       const data = await verifyAnswer({
         question_key: questionData.question_key,
-        challenge_index: 0,
+        challenge_index: challengeIndex,
         answer: code
       });
       setResult(data);
@@ -93,7 +94,7 @@ function RefactorChallengeContent() {
     );
   }
 
-  const challenge = questionData?.question.challenges[0] as RefactorChallenge;
+  const challenge = questionData?.question.challenges[challengeIndex] as RefactorChallenge;
 
   return (
     <div className="bg-[#E5E7EB] text-black font-space-grotesk overflow-hidden min-h-screen selection:bg-black selection:text-white">
@@ -280,11 +281,8 @@ function RefactorChallengeContent() {
       {result && result.correct && (
         <SuccessScreen 
           onNextChallenge={() => {
-            if ((result.subtopic_missions_completed || 0) >= 3) {
-              window.location.href = '/map';
-            } else {
-              window.location.reload();
-            }
+            // This is the last challenge (index 2), so we always go to map or reload if debugging
+            window.location.href = '/map';
           }} 
           xpEarned={result.xp_earned}
           accuracy={result.score || 100}

@@ -26,29 +26,36 @@ if not logger.handlers:
     handler.setFormatter(logging.Formatter('%(levelname)s:     %(message)s'))
     logger.addHandler(handler)
 
-CHALLENGE_TYPES = [
-    'type: "predict_output"\n   Fields: instruction, code_snippet, options (list of 4), correct_answer (string from options)',
-    'type: "drag_and_drop"\n   Fields: instruction, code_with_blanks (use __placeholder__), options (list), solution (object mapping placeholders to values)',
-    'type: "refactor"\n   Fields: instruction, initial_code (messy code), eval_rubric (list of strings)'
-]
+QUESTION_GENERATION_SYSTEM_PROMPT = """Role: You are the "CodeLingo Curriculum Lead." Your goal is to generate high-quality, bite-sized programming challenges.
 
-QUESTION_GENERATION_SYSTEM_PROMPT_TEMPLATE = """Role: You are the "CodeLingo Curriculum Lead." Your goal is to generate high-quality, bite-sized programming challenges.
-
-You MUST generate a challenge of the following type:
-{selected_challenge_type}
+You MUST return a JSON object containing a "challenges" array with EXACTLY 3 challenges, one of each type, in this exact order:
+1. type: "predict_output"
+   (Fields: instruction, code_snippet, options as list of 4 strings, correct_answer as string matching one option)
+2. type: "drag_and_drop"
+   (Fields: instruction, code_with_blanks using __placeholder__, options as list, solution as object mapping placeholders to strings)
+3. type: "refactor"
+   (Fields: instruction, initial_code as messy code string, eval_rubric as list of strings)
 
 You MUST return a JSON object with this EXACT structure:
-{{
+{
   "challenge_id": "string-uuid",
-  "topic_context": "narrative description",
+  "topic_context": "narrative description of the mission",
   "difficulty_score": 5,
   "challenges": [
-    {{
-      "type": "SELECTED_TYPE",
-      ... (include all fields specific to the selected type)
-    }}
+    {
+      "type": "predict_output",
+      ...
+    },
+    {
+      "type": "drag_and_drop",
+      ...
+    },
+    {
+      "type": "refactor",
+      ...
+    }
   ]
-}}
+}
 
 IMPORTANT: Return ONLY the raw JSON. No markdown, no preamble."""
 
@@ -73,11 +80,9 @@ class GeminiService:
 
     async def generate_question(self, payload: GenerateQuestionRequest) -> GeneratedQuestion:
         user_prompt = f"Topic: {payload.main_topic}\nSubtopic: {payload.subtopic}\nTip: {payload.educational_tip}"
-        selected_type = random.choice(CHALLENGE_TYPES)
-        system_prompt = QUESTION_GENERATION_SYSTEM_PROMPT_TEMPLATE.format(selected_challenge_type=selected_type)
         raw = await self._generate_simple_json(
             model=self.settings.gemini_generation_model,
-            system_prompt=system_prompt,
+            system_prompt=QUESTION_GENERATION_SYSTEM_PROMPT,
             user_prompt=user_prompt,
             temperature=0.7
         )

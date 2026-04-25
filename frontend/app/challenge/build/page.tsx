@@ -1,19 +1,22 @@
 "use client";
 import React, { useEffect, useState, Suspense } from 'react';
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import TopBar from '../../components/TopBar';
 import ErrorModal from '../../components/ErrorModal';
 import SuccessScreen from '../../components/SuccessScreen';
-import { generateQuestion, verifyAnswer, GenerateQuestionResponse, VerifyQuestionResponse, DragAndDropChallenge } from '../../../lib/api';
+import { fetchQuestionByKey, verifyAnswer, GenerateQuestionResponse, VerifyQuestionResponse, DragAndDropChallenge, PublicQuestion } from '../../../lib/api';
 
 function BuildChallengeContent() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const mainTopic = searchParams.get('topic') || 'General Programming';
   const subtopic = searchParams.get('subtopic') || 'Architecture';
   const tip = searchParams.get('tip') || 'Drag the components to build the logic.';
+  const questionKey = searchParams.get('key');
+  const challengeIndex = parseInt(searchParams.get('index') || '1');
 
-  const [questionData, setQuestionData] = useState<GenerateQuestionResponse | null>(null);
+  const [questionData, setQuestionData] = useState<{question_key: string, question: PublicQuestion} | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -24,16 +27,13 @@ function BuildChallengeContent() {
     setIsLoading(true);
     setError(null);
     try {
-      const data = await generateQuestion({ 
-        main_topic: mainTopic,
-        subtopic: subtopic,
-        educational_tip: tip
-      });
-      setQuestionData(data);
+      if (!questionKey) throw new Error("Missing mission key.");
+      const data = await fetchQuestionByKey(questionKey);
+      setQuestionData({ question_key: questionKey, question: data });
       
       // Initialize slots based on blanks in code_with_blanks
-      if (data.question.challenges && data.question.challenges[0] && data.question.challenges[0].type === 'drag_and_drop') {
-        const challenge = data.question.challenges[0] as DragAndDropChallenge;
+      if (data.challenges && data.challenges[challengeIndex] && data.challenges[challengeIndex].type === 'drag_and_drop') {
+        const challenge = data.challenges[challengeIndex] as DragAndDropChallenge;
         const blanks = challenge.code_with_blanks?.match(/__\w+__/g) || [];
         const newSlots: Record<string, string | null> = {};
         blanks.forEach((blank) => {
@@ -50,7 +50,7 @@ function BuildChallengeContent() {
 
   useEffect(() => {
     fetchQuestion();
-  }, [mainTopic, subtopic, tip]);
+  }, [questionKey]);
 
   const handleDragStart = (e: React.DragEvent, value: string) => {
     e.dataTransfer.setData('text/plain', value);
@@ -86,7 +86,7 @@ function BuildChallengeContent() {
     try {
       const data = await verifyAnswer({
         question_key: questionData.question_key,
-        challenge_index: 0,
+        challenge_index: challengeIndex,
         answer: slots as Record<string, string>
       });
       setResult(data);
@@ -126,7 +126,7 @@ function BuildChallengeContent() {
     );
   }
 
-  const challenge = questionData?.question.challenges[0] as DragAndDropChallenge;
+  const challenge = questionData?.question.challenges[challengeIndex] as DragAndDropChallenge;
 
   // Function to render code with clickable/droppable slots
   const renderCodeWithSlots = () => {
@@ -240,7 +240,13 @@ function BuildChallengeContent() {
                 Abort
               </Link>
               <button 
-                onClick={fetchQuestion}
+                onClick={() => {
+                  const params = new URLSearchParams();
+                  params.set('topic', mainTopic);
+                  params.set('subtopic', subtopic);
+                  params.set('tip', tip);
+                  router.push(`/challenge/start?${params.toString()}`);
+                }}
                 className="text-black hover:bg-[#FFD700] border-4 border-black shadow-[4px_4px_0_black] px-4 py-2 font-space-grotesk font-black uppercase transition-all flex items-center gap-2 hover:-translate-y-1 active:translate-y-[2px] active:shadow-[0_0_0_black]">
                 <span className="material-symbols-outlined">refresh</span>
                 New Mission
@@ -273,10 +279,16 @@ function BuildChallengeContent() {
       {result?.correct && (
         <SuccessScreen 
           onNextChallenge={() => {
-            if ((result.subtopic_missions_completed || 0) >= 3) {
-              window.location.href = '/map';
+            const nextIndex = challengeIndex + 1;
+            const params = new URLSearchParams(searchParams.toString());
+            params.set('index', nextIndex.toString());
+            
+            if (nextIndex === 1) {
+              window.location.href = `/challenge/build?${params.toString()}`;
+            } else if (nextIndex === 2) {
+              window.location.href = `/challenge/refactor?${params.toString()}`;
             } else {
-              window.location.reload();
+              window.location.href = '/map';
             }
           }} 
           xpEarned={result.xp_earned}

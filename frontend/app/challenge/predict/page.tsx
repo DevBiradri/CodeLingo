@@ -4,15 +4,17 @@ import { useSearchParams } from 'next/navigation';
 import ErrorModal from '../../components/ErrorModal';
 import SuccessScreen from '../../components/SuccessScreen';
 import TopBar from '../../components/TopBar';
-import { generateQuestion, verifyAnswer, GenerateQuestionResponse, VerifyQuestionResponse, PredictOutputChallenge } from '../../../lib/api';
+import { fetchQuestionByKey, verifyAnswer, GenerateQuestionResponse, VerifyQuestionResponse, PredictOutputChallenge, PublicQuestion } from '../../../lib/api';
 
 function PredictChallengeContent() {
   const searchParams = useSearchParams();
   const mainTopic = searchParams.get('topic') || 'General Programming';
   const subtopic = searchParams.get('subtopic') || 'Logic';
   const tip = searchParams.get('tip') || 'Analyze the code flow carefully.';
+  const questionKey = searchParams.get('key');
+  const challengeIndex = parseInt(searchParams.get('index') || '0');
 
-  const [questionData, setQuestionData] = useState<GenerateQuestionResponse | null>(null);
+  const [questionData, setQuestionData] = useState<{question_key: string, question: PublicQuestion} | null>(null);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [result, setResult] = useState<VerifyQuestionResponse | null>(null);
@@ -23,12 +25,9 @@ function PredictChallengeContent() {
     setIsLoading(true);
     setError(null);
     try {
-      const data = await generateQuestion({ 
-        main_topic: mainTopic,
-        subtopic: subtopic,
-        educational_tip: tip
-      });
-      setQuestionData(data);
+      if (!questionKey) throw new Error("Missing mission key.");
+      const data = await fetchQuestionByKey(questionKey);
+      setQuestionData({ question_key: questionKey, question: data });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load mission.");
     } finally {
@@ -38,7 +37,7 @@ function PredictChallengeContent() {
 
   useEffect(() => {
     fetchQuestion();
-  }, [mainTopic, subtopic, tip]);
+  }, [questionKey]);
 
   const handleSubmit = async () => {
     if (!selectedOption || !questionData) return;
@@ -46,7 +45,7 @@ function PredictChallengeContent() {
     try {
       const data = await verifyAnswer({
         question_key: questionData.question_key,
-        challenge_index: 0,
+        challenge_index: challengeIndex,
         answer: selectedOption
       });
       setResult(data);
@@ -220,10 +219,16 @@ function PredictChallengeContent() {
       {result && result.correct && (
         <SuccessScreen 
           onNextChallenge={() => {
-            if ((result.subtopic_missions_completed || 0) >= 3) {
-              window.location.href = '/map';
+            const nextIndex = challengeIndex + 1;
+            const params = new URLSearchParams(searchParams.toString());
+            params.set('index', nextIndex.toString());
+            
+            if (nextIndex === 1) {
+              window.location.href = `/challenge/build?${params.toString()}`;
+            } else if (nextIndex === 2) {
+              window.location.href = `/challenge/refactor?${params.toString()}`;
             } else {
-              window.location.reload();
+              window.location.href = '/map';
             }
           }} 
           xpEarned={result.xp_earned}

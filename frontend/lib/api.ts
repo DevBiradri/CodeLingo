@@ -306,6 +306,15 @@ export async function generateQuestion(
   return handleResponse<GenerateQuestionResponse>(res);
 }
 
+export async function fetchQuestionByKey(key: string): Promise<PublicQuestion> {
+  const res = await fetch(`${API_URL}/questions/${key}`, {
+    method: "GET",
+    headers: getAuthHeaders(),
+    credentials: "include",
+  });
+  return handleResponse<PublicQuestion>(res);
+}
+
 export async function verifyAnswer(
   payload: VerifyQuestionRequest
 ): Promise<VerifyQuestionResponse> {
