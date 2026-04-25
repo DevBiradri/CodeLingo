@@ -60,13 +60,10 @@ export default function Home() {
           </p>
           
           <div className="flex flex-col sm:flex-row gap-6 justify-center items-center w-full sm:w-auto">
-            <Link href="/register" className="w-full sm:w-auto h-20 px-12 bg-[#FF00FF] border-4 border-black text-white font-space-grotesk text-2xl font-black uppercase tracking-widest flex items-center justify-center gap-3 shadow-[8px_8px_0_black] hover:-translate-y-2 hover:translate-x-[-2px] hover:shadow-[12px_12px_0_black] active:translate-y-[4px] active:translate-x-[4px] active:shadow-[0_0_0_black] transition-all">
+            <Link href="/register" className="w-full sm:w-auto h-20 px-12 bg-[#FF00FF] border-4 border-black text-white font-space-grotesk text-2xl font-black uppercase tracking-widest flex items-center justify-center gap-3 shadow-[8px_8px_0_black] hover:-translate-y-2 hover:translate-x-[-2px] hover:shadow-[12px_12px_0_black] active:translate-y-[4px] active:translate-x-[4px] active:shadow-[0px_0px_0px_black] transition-all">
               Start Learning
               <span className="material-symbols-outlined text-4xl">bolt</span>
             </Link>
-            <button className="w-full sm:w-auto h-20 px-12 bg-white border-4 border-black text-black font-space-grotesk text-2xl font-black uppercase tracking-widest flex items-center justify-center gap-3 shadow-[8px_8px_0_black] hover:-translate-y-2 hover:translate-x-[-2px] hover:shadow-[12px_12px_0_black] active:translate-y-[4px] active:translate-x-[4px] active:shadow-[0_0_0_black] transition-all">
-              View Courses
-            </button>
           </div>
         </div>
       </section>

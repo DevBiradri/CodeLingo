@@ -18,7 +18,7 @@ export default function TopBar({ title }: { title: React.ReactNode }) {
   return (
     <header className="fixed top-0 right-0 left-0 h-[72px] bg-white border-b-4 border-black z-40 flex items-center justify-between px-6 md:px-12">
       <div className="flex items-center gap-6">
-        <Link href="/map" className="font-space-grotesk text-2xl font-black text-black uppercase tracking-tighter flex items-center gap-2 hover:-translate-y-1 transition-transform">
+        <Link href="/" className="font-space-grotesk text-2xl font-black text-black uppercase tracking-tighter flex items-center gap-2 hover:-translate-y-1 transition-transform">
           <span className="w-6 h-6 bg-[#A3E635] border-2 border-black inline-flex items-center justify-center shadow-[2px_2px_0_black]">
             <span className="material-symbols-outlined text-[16px] font-black text-black">terminal</span>
           </span>

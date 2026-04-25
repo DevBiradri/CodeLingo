@@ -77,26 +77,21 @@ export default function ProfilePage() {
           </div>
 
           {/* Stats Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-4 border-b-4 border-black font-jetbrains-mono uppercase">
+          <div className="grid grid-cols-1 md:grid-cols-3 border-b-4 border-black font-jetbrains-mono uppercase">
             
-            <div className="p-6 border-r-4 border-b-4 md:border-b-0 border-black flex flex-col items-center text-center bg-[#00FFFF] hover:bg-white transition-colors">
+            <div className="p-6 border-b-4 md:border-b-0 md:border-r-4 border-black flex flex-col items-center text-center bg-[#00FFFF] hover:bg-white transition-colors">
               <span className="text-3xl font-black mb-1">{progress?.experience_points || 0}</span>
               <span className="text-xs font-bold tracking-widest">Total XP</span>
             </div>
             
-            <div className="p-6 border-r-0 md:border-r-4 border-b-4 md:border-b-0 border-black flex flex-col items-center text-center bg-[#FFD700] hover:bg-white transition-colors">
+            <div className="p-6 border-b-4 md:border-b-0 md:border-r-4 border-black flex flex-col items-center text-center bg-[#FFD700] hover:bg-white transition-colors">
               <span className="text-3xl font-black mb-1">{progress?.health_points || 0}</span>
               <span className="text-xs font-bold tracking-widest">Health (HP)</span>
             </div>
             
-            <div className="p-6 border-r-4 border-black flex flex-col items-center text-center bg-[#FF90E8] hover:bg-white transition-colors">
+            <div className="p-6 flex flex-col items-center text-center bg-[#FF90E8] hover:bg-white transition-colors">
               <span className="text-3xl font-black mb-1">{progress?.xp_to_next_level || 0}</span>
               <span className="text-xs font-bold tracking-widest">To Next Lvl</span>
-            </div>
-            
-            <div className="p-6 flex flex-col items-center text-center bg-[#A3E635] hover:bg-white transition-colors">
-              <span className="text-3xl font-black mb-1">94%</span>
-              <span className="text-xs font-bold tracking-widest">Accuracy</span>
             </div>
 
           </div>
@@ -119,13 +114,10 @@ export default function ProfilePage() {
           </div>
 
           {/* Actions */}
-          <div className="flex items-center justify-between p-8 bg-white border-t-4 border-black">
-            <button className="px-6 py-3 bg-white border-4 border-black font-space-grotesk font-black uppercase tracking-widest hover:-translate-y-1 hover:shadow-[4px_4px_0_black] active:translate-y-[2px] active:shadow-[0_0_0_black] transition-all">
-              Edit Dossier
-            </button>
+          <div className="flex items-center justify-center p-8 bg-white border-t-4 border-black">
             <button 
               onClick={handleLogout}
-              className="px-6 py-3 bg-[#FF3B30] text-white border-4 border-black font-space-grotesk font-black uppercase tracking-widest hover:-translate-y-1 hover:shadow-[4px_4px_0_black] active:translate-y-[2px] active:shadow-[0_0_0_black] transition-all"
+              className="px-12 py-4 bg-[#FF3B30] text-white border-4 border-black font-space-grotesk font-black uppercase tracking-widest hover:-translate-y-1 hover:shadow-[4px_4px_0_black] active:translate-y-[2px] active:shadow-[0_0_0_black] transition-all"
             >
               Abort Session
             </button>
