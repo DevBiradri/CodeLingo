@@ -119,21 +119,14 @@ export default function SuccessScreen({
                   </span>
                 </button>
                 
-                <div className="grid grid-cols-2 gap-6 flex-grow">
-                  <Link href="/map" className="h-full min-h-[140px] bg-white border-4 border-black shadow-[6px_6px_0_black] flex flex-col items-center justify-center gap-3 hover:-translate-y-2 hover:translate-x-[-2px] hover:shadow-[8px_8px_0_black] active:translate-y-[2px] active:translate-x-[2px] active:shadow-[2px_2px_0px_black] transition-all group">
+                <div className="flex flex-col gap-6 flex-grow">
+                  <Link href="/map" className="w-full py-8 bg-white border-4 border-black shadow-[6px_6px_0_black] flex flex-col items-center justify-center gap-3 hover:-translate-y-2 hover:translate-x-[-2px] hover:shadow-[8px_8px_0_black] active:translate-y-[2px] active:translate-x-[2px] active:shadow-[2px_2px_0px_black] transition-all group">
                     <div className="w-16 h-16 rounded-none bg-[#FF90E8] border-4 border-black flex items-center justify-center shadow-[4px_4px_0_black]">
                       <span className="material-symbols-outlined text-black text-3xl">map</span>
                     </div>
                     <span className="tracking-widest uppercase font-black font-space-grotesk text-black mt-2">View Map</span>
                   </Link>
-                  <button className="h-full min-h-[140px] bg-white border-4 border-black shadow-[6px_6px_0_black] flex flex-col items-center justify-center gap-3 hover:-translate-y-2 hover:translate-x-[-2px] hover:shadow-[8px_8px_0_black] active:translate-y-[2px] active:translate-x-[2px] active:shadow-[2px_2px_0px_black] transition-all group">
-                    <div className="w-16 h-16 rounded-none bg-[#00FFFF] border-4 border-black flex items-center justify-center shadow-[4px_4px_0_black]">
-                      <span className="material-symbols-outlined text-black text-3xl">share</span>
-                    </div>
-                    <span className="tracking-widest uppercase font-black font-space-grotesk text-black mt-2">Share Log</span>
-                  </button>
-                </div>
-              </div>
+                </div>              </div>
             </div>
           </div>
         </main>

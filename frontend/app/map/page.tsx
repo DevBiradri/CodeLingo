@@ -346,8 +346,8 @@ export default function SkillTreeMap() {
                   <div className={`absolute w-5/12 flex flex-col gap-4 ${isEven ? 'left-[55%] items-start pl-4' : 'right-[55%] items-end pr-4'}`}>
                     {node.subtopics.map((sub, i) => {
                       const completedCount = progress?.completed_missions?.[sub.name] || 0;
-                      const isSubtopicLocked = isLocked || (i > 0 && (progress?.completed_missions?.[node.subtopics[i-1].name] || 0) < 5);
-                      const isSubtopicCompleted = completedCount >= 5;
+                      const isSubtopicLocked = isLocked || (i > 0 && (progress?.completed_missions?.[node.subtopics[i-1].name] || 0) < 3);
+                      const isSubtopicCompleted = completedCount >= 3;
                       
                       let subtopicStyle = subBg;
                       if (isSubtopicCompleted) {

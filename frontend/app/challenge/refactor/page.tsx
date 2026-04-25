@@ -280,7 +280,7 @@ function RefactorChallengeContent() {
       {result && result.correct && (
         <SuccessScreen 
           onNextChallenge={() => {
-            if ((result.subtopic_missions_completed || 0) >= 5) {
+            if ((result.subtopic_missions_completed || 0) >= 3) {
               window.location.href = '/map';
             } else {
               window.location.reload();
@@ -295,7 +295,7 @@ function RefactorChallengeContent() {
           xpForNextLevel={result.xp_for_next_level}
           xpToNextLevel={result.xp_to_next_level}
           missionsCompleted={result.subtopic_missions_completed}
-          missionsTotal={5}
+          missionsTotal={3}
         />
       )}
 
