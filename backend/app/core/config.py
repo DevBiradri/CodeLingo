@@ -1,13 +1,22 @@
+import os
 from functools import lru_cache
 from typing import List
 
+from dotenv import load_dotenv
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+# Get the directory of the current file
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+ENV_FILE = os.path.join(BASE_DIR, ".env")
+
+# Explicitly load .env file
+load_dotenv(ENV_FILE)
 
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file=".env", env_file_encoding="utf-8", extra="ignore"
+        env_file=ENV_FILE, env_file_encoding="utf-8", extra="ignore"
     )
 
     app_name: str = "CodeQuest API"
@@ -24,7 +33,7 @@ class Settings(BaseSettings):
     session_cookie_secure: bool = False
     session_cookie_httponly: bool = True
     session_cookie_samesite: str = "lax"
-    cors_origins: List[str] = ["http://localhost:3000"]
+    cors_origins: List[str] = ["http://localhost:3000", "http://127.0.0.1:3000"]
     gemini_api_key: str | None = None
     gemini_generation_model: str = "gemini-2.0-flash"
     gemini_judge_model: str = "gemini-2.0-flash"

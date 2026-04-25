@@ -139,7 +139,7 @@ class AuthService:
             )
 
         now = datetime.now(timezone.utc)
-        if session.refresh_expires_at <= now:
+        if self._normalize_datetime(session.refresh_expires_at) <= now:
             session.revoked_at = now
             await self.db.commit()
             raise HTTPException(
@@ -255,7 +255,7 @@ class AuthService:
             )
 
         now = datetime.now(timezone.utc)
-        if session.access_expires_at <= now:
+        if self._normalize_datetime(session.access_expires_at) <= now:
             session.revoked_at = now
             await self.db.commit()
             raise HTTPException(
@@ -409,3 +409,13 @@ class AuthService:
             seen.add(key)
             normalized.append(value)
         return normalized
+
+    def _normalize_datetime(self, value: datetime | None) -> datetime:
+        """Ensure a datetime object is offset-aware (UTC)."""
+        if value is None:
+            return datetime.now(timezone.utc)
+
+        if value.tzinfo is None:
+            return value.replace(tzinfo=timezone.utc)
+
+        return value.astimezone(timezone.utc)

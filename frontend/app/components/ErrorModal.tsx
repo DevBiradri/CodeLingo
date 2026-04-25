@@ -3,16 +3,25 @@ import React from 'react';
 interface ErrorModalProps {
   isOpen: boolean;
   onTryAgain: () => void;
+  onClose?: () => void;
   errorMessage?: string;
-  correctCodeHTML?: React.ReactNode;
+  correctAnswer?: string;
+  hpConsumed?: number;
 }
 
-export default function ErrorModal({ isOpen, onTryAgain, errorMessage, correctCodeHTML }: ErrorModalProps) {
+export default function ErrorModal({ isOpen, onTryAgain, onClose, errorMessage, correctAnswer, hpConsumed = 0 }: ErrorModalProps) {
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-black/80 z-[100] flex items-center justify-center p-4">
       <div className="relative w-full max-w-md">
+        
+        {/* HP Deduction Badge */}
+        {hpConsumed > 0 && (
+          <div className="absolute -top-12 right-0 bg-black text-[#EF4444] border-4 border-[#EF4444] px-4 py-2 font-black text-2xl animate-bounce z-30 shadow-[4px_4px_0_black]">
+            -{hpConsumed} HP
+          </div>
+        )}
         
         {/* BYTE Mascot Coaching State */}
         <div className="absolute -top-24 left-1/2 -translate-x-1/2 z-20">
@@ -31,30 +40,36 @@ export default function ErrorModal({ isOpen, onTryAgain, errorMessage, correctCo
         <div className="bg-white border-4 border-black shadow-[12px_12px_0_black] mt-12 relative z-10 flex flex-col">
           
           {/* Red Alert Header */}
-          <div className="bg-[#EF4444] border-b-4 border-black p-4 flex items-center gap-3">
-            <span className="material-symbols-outlined text-black text-3xl font-black">close</span>
-            <h2 className="font-space-grotesk tracking-tighter uppercase text-2xl font-black text-black">Syntax Error</h2>
+          <div className="bg-[#EF4444] border-b-4 border-black p-4 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <span className="material-symbols-outlined text-black text-3xl font-black">warning</span>
+              <h2 className="font-space-grotesk tracking-tighter uppercase text-2xl font-black text-black">Protocol Error</h2>
+            </div>
+            {onClose && (
+              <button 
+                onClick={onClose}
+                className="w-10 h-10 flex items-center justify-center bg-white border-4 border-black hover:bg-black hover:text-white transition-all shadow-[4px_4px_0_black] active:translate-x-1 active:translate-y-1 active:shadow-[0_0_0_black]"
+              >
+                <span className="material-symbols-outlined font-black">close</span>
+              </button>
+            )}
           </div>
           
           <div className="p-6 space-y-6">
             {/* Feedback Message */}
-            <p className="font-jetbrains-mono font-bold text-black text-base">
-              {errorMessage || (
-                <>Careful! You forgot the <span className="bg-[#FFD700] border-2 border-black px-1">colon (:)</span> at the end of the loop declaration.</>
-              )}
+            <p className="font-jetbrains-mono font-bold text-black text-base leading-relaxed">
+              {errorMessage || "System failure. Unexpected output detected."}
             </p>
 
             {/* Corrective Code Block */}
-            <div className="space-y-2">
-              <span className="font-jetbrains-mono font-black text-xs text-black uppercase bg-[#A3E635] px-2 py-1 border-2 border-black shadow-[2px_2px_0_black]">Required Format:</span>
-              <div className="bg-black text-white p-4 border-4 border-black font-jetbrains-mono text-sm relative mt-2 shadow-[4px_4px_0_#FF00FF]">
-                {correctCodeHTML || (
-                  <>
-                    <span className="text-[#FF00FF]">for</span> i <span className="text-[#FF00FF]">in</span> range(5):
-                  </>
-                )}
+            {correctAnswer && (
+              <div className="space-y-2">
+                <span className="font-jetbrains-mono font-black text-xs text-black uppercase bg-[#A3E635] px-2 py-1 border-2 border-black shadow-[2px_2px_0_black]">Expected Output:</span>
+                <div className="bg-black text-[#00FFFF] p-4 border-4 border-black font-jetbrains-mono text-lg font-black relative mt-2 shadow-[4px_4px_0_#FF00FF] break-all">
+                  {correctAnswer}
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Actions */}
             <div className="flex gap-4 pt-4 border-t-4 border-black mt-6">

@@ -1,21 +1,48 @@
-import React from 'react';
+"use client";
+
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import TopBar from '../components/TopBar';
+import { useAuth } from '../../lib/auth-context';
+import { getMyProgress, ProgressResponse } from '../../lib/api';
 
 export default function ProfilePage() {
-  const user = {
-    name: "OPERATIVE_01",
-    level: 14,
-    role: "Frontend Engineer",
-    xp: 4500,
-    streak: 4,
-    accuracy: 94,
-    challengesCompleted: 38,
-    recentActivity: [
-      { id: 1, action: "Solved 'Python Loop'", time: "2 hours ago", type: "success" },
-      { id: 2, action: "Failed 'React State Refactor'", time: "5 hours ago", type: "error" },
-      { id: 3, action: "Earned 'Syntax Master' Badge", time: "1 day ago", type: "achievement" },
-    ]
+  const { user, logout } = useAuth();
+  const router = useRouter();
+  const [progress, setProgress] = useState<ProgressResponse | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchProgress() {
+      try {
+        const data = await getMyProgress();
+        setProgress(data);
+      } catch (err) {
+        console.error("Failed to fetch progress", err);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    fetchProgress();
+  }, []);
+
+  if (!user) {
+    return (
+      <div className="bg-[#E5E7EB] min-h-screen flex items-center justify-center font-space-grotesk">
+        <div className="bg-white border-4 border-black p-8 shadow-[8px_8px_0_black] text-center">
+          <h2 className="text-2xl font-black uppercase mb-4">Unauthorized Access</h2>
+          <Link href="/login" className="bg-[#FF00FF] text-white border-2 border-black px-4 py-2 font-bold uppercase hover:bg-black transition-colors">
+            Login to Continue
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  const handleLogout = async () => {
+    await logout();
+    router.push("/login");
   };
 
   return (
@@ -33,18 +60,18 @@ export default function ProfilePage() {
             {/* Info Block */}
             <div className="w-full p-8 flex flex-col justify-center text-center md:text-left bg-[#FF00FF]">
               <h1 className="text-4xl md:text-6xl font-black uppercase tracking-tighter text-white mb-2" style={{ textShadow: '4px 4px 0 #000' }}>
-                {user.name}
+                {user.name || user.username}
               </h1>
               <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 mb-6">
                 <span className="font-jetbrains-mono font-bold uppercase text-sm bg-black text-white px-3 py-1 border-2 border-black">
-                  Lvl {user.level}
+                  Lvl {progress?.level || 1}
                 </span>
                 <span className="font-jetbrains-mono font-bold uppercase text-sm bg-[#A3E635] text-black px-3 py-1 border-2 border-black">
-                  {user.role}
+                  {progress?.level_name || "Newcomer"}
                 </span>
               </div>
               <p className="font-jetbrains-mono font-bold uppercase text-black/60 tracking-widest text-sm">
-                ID: 0x{Math.random().toString(16).slice(2, 10).toUpperCase()}
+                ID: {user.id.split('-')[0].toUpperCase()}
               </p>
             </div>
           </div>
@@ -53,46 +80,41 @@ export default function ProfilePage() {
           <div className="grid grid-cols-2 md:grid-cols-4 border-b-4 border-black font-jetbrains-mono uppercase">
             
             <div className="p-6 border-r-4 border-b-4 md:border-b-0 border-black flex flex-col items-center text-center bg-[#00FFFF] hover:bg-white transition-colors">
-              <span className="text-3xl font-black mb-1">{user.xp}</span>
+              <span className="text-3xl font-black mb-1">{progress?.experience_points || 0}</span>
               <span className="text-xs font-bold tracking-widest">Total XP</span>
             </div>
             
             <div className="p-6 border-r-0 md:border-r-4 border-b-4 md:border-b-0 border-black flex flex-col items-center text-center bg-[#FFD700] hover:bg-white transition-colors">
-              <span className="text-3xl font-black mb-1">{user.streak}</span>
-              <span className="text-xs font-bold tracking-widest">Day Streak</span>
+              <span className="text-3xl font-black mb-1">{progress?.health_points || 0}</span>
+              <span className="text-xs font-bold tracking-widest">Health (HP)</span>
             </div>
             
             <div className="p-6 border-r-4 border-black flex flex-col items-center text-center bg-[#FF90E8] hover:bg-white transition-colors">
-              <span className="text-3xl font-black mb-1">{user.accuracy}%</span>
-              <span className="text-xs font-bold tracking-widest">Accuracy</span>
+              <span className="text-3xl font-black mb-1">{progress?.xp_to_next_level || 0}</span>
+              <span className="text-xs font-bold tracking-widest">To Next Lvl</span>
             </div>
             
             <div className="p-6 flex flex-col items-center text-center bg-[#A3E635] hover:bg-white transition-colors">
-              <span className="text-3xl font-black mb-1">{user.challengesCompleted}</span>
-              <span className="text-xs font-bold tracking-widest">Cleared</span>
+              <span className="text-3xl font-black mb-1">94%</span>
+              <span className="text-xs font-bold tracking-widest">Accuracy</span>
             </div>
 
           </div>
 
-          {/* Activity Log */}
+          {/* Activity Log (Static for now as backend doesn't have it yet) */}
           <div className="p-8 bg-[#F3F4F6]">
             <h2 className="font-space-grotesk text-2xl font-black uppercase mb-6 flex items-center gap-2">
               <span className="material-symbols-outlined">history</span>
               Recent Activity
             </h2>
             <div className="flex flex-col gap-4 font-jetbrains-mono">
-              {user.recentActivity.map((log) => (
-                <div key={log.id} className="flex items-center justify-between border-2 border-black bg-white p-4 shadow-[4px_4px_0_black]">
-                  <div className="flex items-center gap-4">
-                    <div className={`w-3 h-3 border-2 border-black ${
-                      log.type === 'success' ? 'bg-[#A3E635]' : 
-                      log.type === 'error' ? 'bg-[#FF3B30]' : 'bg-[#FFD700]'
-                    }`}></div>
-                    <span className="font-bold text-sm uppercase">{log.action}</span>
-                  </div>
-                  <span className="text-xs font-bold opacity-50 uppercase tracking-widest">{log.time}</span>
+              <div className="flex items-center justify-between border-2 border-black bg-white p-4 shadow-[4px_4px_0_black]">
+                <div className="flex items-center gap-4">
+                  <div className="w-3 h-3 border-2 border-black bg-[#A3E635]"></div>
+                  <span className="font-bold text-sm uppercase">Synchronized with Mainframe</span>
                 </div>
-              ))}
+                <span className="text-xs font-bold opacity-50 uppercase tracking-widest">Just now</span>
+              </div>
             </div>
           </div>
 
@@ -101,9 +123,12 @@ export default function ProfilePage() {
             <button className="px-6 py-3 bg-white border-4 border-black font-space-grotesk font-black uppercase tracking-widest hover:-translate-y-1 hover:shadow-[4px_4px_0_black] active:translate-y-[2px] active:shadow-[0_0_0_black] transition-all">
               Edit Dossier
             </button>
-            <Link href="/login" className="px-6 py-3 bg-[#FF3B30] text-white border-4 border-black font-space-grotesk font-black uppercase tracking-widest hover:-translate-y-1 hover:shadow-[4px_4px_0_black] active:translate-y-[2px] active:shadow-[0_0_0_black] transition-all">
+            <button 
+              onClick={handleLogout}
+              className="px-6 py-3 bg-[#FF3B30] text-white border-4 border-black font-space-grotesk font-black uppercase tracking-widest hover:-translate-y-1 hover:shadow-[4px_4px_0_black] active:translate-y-[2px] active:shadow-[0_0_0_black] transition-all"
+            >
               Abort Session
-            </Link>
+            </button>
           </div>
 
         </div>

@@ -4,6 +4,7 @@ from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.app.core.config import Settings
+from backend.app.core.levels import get_level_info
 from backend.app.schemas.question import (
     DragAndDropChallenge,
     GeneratedQuestion,
@@ -80,20 +81,50 @@ class QuestionService:
                 detail="Unsupported challenge type",
             )
 
+        xp_earned = 0
+        hp_consumed = 0
+        subtopic_missions_completed = 0
+
         if correct:
+            xp_earned = self.settings.challenge_success_xp
             user = await self.progress_service.award_experience(
-                user_id=user_id, amount=self.settings.challenge_success_xp
+                user_id=user_id, amount=xp_earned
             )
+            # Increment mission count if subtopic is known
+            if generated.subtopic:
+                user = await self.progress_service.increment_mission_count(
+                    user_id=user_id, subtopic=generated.subtopic
+                )
+                subtopic_missions_completed = user.completed_missions.get(generated.subtopic, 0)
         else:
+            hp_consumed = 1
             user = await self.progress_service.record_failure(user_id)
+            if generated.subtopic:
+                subtopic_missions_completed = user.completed_missions.get(generated.subtopic, 0)
+
+        level_info = get_level_info(user.experience_points)
 
         response = VerifyQuestionResponse(
             correct=correct,
             challenge_type=challenge.type,
             experience_points=user.experience_points,
+            xp_earned=xp_earned,
             health_points=user.health_points,
+            hp_consumed=hp_consumed,
             health_next_regen_at=user.health_next_regen_at,
+            level=level_info.level,
+            level_name=level_info.level_name,
+            xp_for_current_level=level_info.xp_for_current_level,
+            xp_for_next_level=level_info.xp_for_next_level,
+            xp_to_next_level=level_info.xp_to_next_level,
+            subtopic_missions_completed=subtopic_missions_completed,
         )
+
+        if not correct:
+            if isinstance(challenge, DragAndDropChallenge):
+                response.correct_answer = challenge.solution
+            elif isinstance(challenge, PredictOutputChallenge):
+                response.correct_answer = challenge.correct_answer
 
         if judge_result is not None:
             response.score = judge_result.score
@@ -103,7 +134,7 @@ class QuestionService:
         return response
 
     def _to_public_question(self, generated: GeneratedQuestion) -> PublicQuestion:
-        content = generated.model_dump(exclude_none=True)
+        content = generated.model_dump(exclude_none=False) # Ensure subtopic is kept
         for challenge in content.get("challenges", []):
             challenge.pop("solution", None)
             challenge.pop("correct_answer", None)

@@ -7,6 +7,9 @@ from backend.app.core.config import get_settings
 from backend.app.db.session import get_db
 from backend.app.models.user import User
 from backend.app.services.auth_service import AuthService
+from backend.app.services.gemini_service import GeminiService
+from backend.app.services.question_cache import InMemoryQuestionCache
+from backend.app.services.question_service import QuestionService
 
 AuthorizationHeader = Annotated[str | None, Header(alias="Authorization")]
 DatabaseSession = Annotated[AsyncSession, Depends(get_db)]
@@ -38,3 +41,27 @@ def _extract_session_token(request: Request, authorization: str | None) -> str |
         return token or None
 
     return None
+
+
+# ─── Singleton service dependencies ──────────────────────────────────────────
+
+def get_question_cache(request: Request) -> InMemoryQuestionCache:
+    return request.app.state.question_cache
+
+
+def get_gemini_service(request: Request) -> GeminiService:
+    return request.app.state.gemini_service
+
+
+def get_question_service(
+    db: DatabaseSession,
+    cache: Annotated[InMemoryQuestionCache, Depends(get_question_cache)],
+    llm: Annotated[GeminiService, Depends(get_gemini_service)],
+) -> QuestionService:
+    return QuestionService(db=db, settings=get_settings(), cache=cache, llm=llm)
+
+
+# Typed aliases for injection
+CurrentUser = Annotated[User, Depends(get_current_user)]
+QuestionServiceDep = Annotated[QuestionService, Depends(get_question_service)]
+

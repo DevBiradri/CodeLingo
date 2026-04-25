@@ -1,7 +1,20 @@
-import React from 'react';
+"use client";
+
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { getMyProgress, ProgressResponse } from '../../lib/api';
+import { useAuth } from '../../lib/auth-context';
 
 export default function TopBar({ title }: { title: React.ReactNode }) {
+  const { isAuthenticated } = useAuth();
+  const [progress, setProgress] = useState<ProgressResponse | null>(null);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      getMyProgress().then(setProgress).catch(console.error);
+    }
+  }, [isAuthenticated]);
+
   return (
     <header className="fixed top-0 right-0 left-0 h-[72px] bg-white border-b-4 border-black z-40 flex items-center justify-between px-6 md:px-12">
       <div className="flex items-center gap-6">
@@ -23,15 +36,19 @@ export default function TopBar({ title }: { title: React.ReactNode }) {
           <span className="text-sm">Leaderboard</span>
         </Link>
 
-        <div className="hidden sm:flex items-center gap-2 bg-[#FFD700] border-4 border-black px-4 py-2 shadow-[4px_4px_0_black] font-jetbrains-mono font-bold text-black uppercase">
-          <span className="material-symbols-outlined text-[18px]">local_fire_department</span>
-          <span className="text-sm">4 Days</span>
-        </div>
-        
-        <div className="flex items-center gap-2 bg-[#FF90E8] border-4 border-black px-4 py-2 shadow-[4px_4px_0_black] font-jetbrains-mono font-bold text-black uppercase">
-          <span className="material-symbols-outlined text-[18px] filled-icon">favorite</span>
-          <span className="text-sm">5/5</span>
-        </div>
+        {isAuthenticated && (
+          <>
+            <div className="hidden sm:flex items-center gap-2 bg-[#FFD700] border-4 border-black px-4 py-2 shadow-[4px_4px_0_black] font-jetbrains-mono font-bold text-black uppercase">
+              <span className="material-symbols-outlined text-[18px]">bolt</span>
+              <span className="text-sm">XP {progress?.experience_points ?? 0}</span>
+            </div>
+            
+            <div className="flex items-center gap-2 bg-[#FF90E8] border-4 border-black px-4 py-2 shadow-[4px_4px_0_black] font-jetbrains-mono font-bold text-black uppercase">
+              <span className="material-symbols-outlined text-[18px] filled-icon">favorite</span>
+              <span className="text-sm">{progress?.health_points ?? 0}/{progress?.max_health_points ?? 5}</span>
+            </div>
+          </>
+        )}
 
         <Link href="/profile" className="flex items-center justify-center bg-black border-4 border-black text-white w-10 h-10 shadow-[4px_4px_0_black] hover:-translate-y-1 hover:shadow-[6px_6px_0_black] active:translate-y-[2px] active:shadow-[0_0_0_black] transition-all">
           <span className="material-symbols-outlined text-[20px]">person</span>

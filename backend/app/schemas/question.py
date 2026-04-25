@@ -38,6 +38,7 @@ Challenge = Annotated[
 class GeneratedQuestion(BaseModel):
     challenge_id: str
     topic_context: str
+    subtopic: str | None = None
     difficulty_score: int | None = Field(default=None, ge=1, le=10)
     challenges: list[Challenge] = Field(min_length=1)
 
@@ -72,6 +73,7 @@ PublicChallenge = Annotated[
 class PublicQuestion(BaseModel):
     challenge_id: str
     topic_context: str
+    subtopic: str | None = None
     difficulty_score: int | None = Field(default=None, ge=1, le=10)
     challenges: list[PublicChallenge]
 
@@ -115,6 +117,17 @@ class VerifyQuestionResponse(BaseModel):
     score: int | None = None
     feedback: str | None = None
     rubric_breakdown: list[RubricBreakdownItem] | None = None
+    correct_answer: str | dict[str, str] | None = None
     experience_points: int
+    xp_earned: int = 0
     health_points: int
+    hp_consumed: int = 0
     health_next_regen_at: datetime | None
+    
+    # Level progression info
+    level: int = 1
+    level_name: str = "Newcomer"
+    xp_for_current_level: int = 0
+    xp_for_next_level: int | None = None
+    xp_to_next_level: int | None = None
+    subtopic_missions_completed: int = 0

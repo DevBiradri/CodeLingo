@@ -62,6 +62,22 @@ class ProgressService:
         await self.db.refresh(user)
         return user
 
+    async def increment_mission_count(self, user_id: str, subtopic: str) -> User:
+        user = await self._get_active_user(user_id)
+        
+        # Ensure completed_missions is a dict (SQLAlchemy JSON field initialization)
+        if user.completed_missions is None:
+            user.completed_missions = {}
+            
+        # Use a copy to ensure SQLAlchemy detects the change in the JSON field
+        current = dict(user.completed_missions)
+        current[subtopic] = current.get(subtopic, 0) + 1
+        user.completed_missions = current
+
+        await self.db.commit()
+        await self.db.refresh(user)
+        return user
+
     async def _get_active_user(self, user_id: str) -> User:
         user = await self.db.get(User, user_id)
         if user is None or not user.is_active:

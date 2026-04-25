@@ -1,18 +1,30 @@
-import React from 'react';
-import TopBar from '../components/TopBar';
+"use client";
 
-const leaderboardData = [
-  { id: 1, name: "NeonCoder", level: 42, xp: 12500, rank: 1, isCurrentUser: false },
-  { id: 2, name: "BYTE_Master", level: 38, xp: 11200, rank: 2, isCurrentUser: false },
-  { id: 3, name: "SyntaxError", level: 35, xp: 9800, rank: 3, isCurrentUser: false },
-  { id: 4, name: "OPERATIVE_01", level: 14, xp: 4500, rank: 4, isCurrentUser: true },
-  { id: 5, name: "NullPointer", level: 12, xp: 3200, rank: 5, isCurrentUser: false },
-  { id: 6, name: "DropTable", level: 9, xp: 2100, rank: 6, isCurrentUser: false },
-  { id: 7, name: "HackThePlanet", level: 8, xp: 1950, rank: 7, isCurrentUser: false },
-  { id: 8, name: "GhostInTheShell", level: 6, xp: 1400, rank: 8, isCurrentUser: false },
-];
+import React, { useEffect, useState } from 'react';
+import TopBar from '../components/TopBar';
+import { getLeaderboard, LeaderboardEntry } from '../../lib/api';
+import { useAuth } from '../../lib/auth-context';
 
 export default function LeaderboardPage() {
+  const { user: currentUser } = useAuth();
+  const [leaderboardData, setLeaderboardData] = useState<LeaderboardEntry[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function fetchLeaderboard() {
+      try {
+        const data = await getLeaderboard();
+        setLeaderboardData(data.entries);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to load leaderboard.");
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    fetchLeaderboard();
+  }, []);
+
   return (
     <div className="bg-[#E5E7EB] text-black font-space-grotesk overflow-x-hidden min-h-screen selection:bg-black selection:text-white">
       <TopBar title={<><span>Global</span> — Leaderboard</>} />
@@ -44,77 +56,93 @@ export default function LeaderboardPage() {
 
             {/* List */}
             <div className="flex flex-col">
-              {leaderboardData.map((user, index) => {
-                // Determine styling based on rank
-                let rowBg = "hover:bg-[#E5E7EB] bg-white";
-                let rankBadge = null;
-                let rankColor = "bg-white";
+              {isLoading ? (
+                <div className="p-12 text-center font-jetbrains-mono font-bold uppercase animate-pulse">
+                  Fetching Global Data...
+                </div>
+              ) : error ? (
+                <div className="p-12 text-center text-red-500 font-jetbrains-mono font-bold uppercase">
+                  Error: {error}
+                </div>
+              ) : leaderboardData.length === 0 ? (
+                <div className="p-12 text-center font-jetbrains-mono font-bold uppercase">
+                  No records found in the database.
+                </div>
+              ) : (
+                leaderboardData.map((user) => {
+                  const isCurrentUser = currentUser?.username === user.username;
+                  
+                  // Determine styling based on rank
+                  let rowBg = "hover:bg-[#E5E7EB] bg-white";
+                  let rankBadge = null;
+                  let rankColor = "bg-white";
 
-                if (user.rank === 1) {
-                  rowBg = "bg-[#FFD700] hover:bg-[#E6C200]";
-                  rankColor = "bg-[#FFD700]";
-                  rankBadge = <span className="material-symbols-outlined text-black text-3xl" style={{ fontVariationSettings: "'FILL' 1" }}>military_tech</span>;
-                } else if (user.rank === 2) {
-                  rowBg = "bg-[#C0C0C0] hover:bg-[#A9A9A9]";
-                  rankColor = "bg-[#C0C0C0]";
-                  rankBadge = <span className="material-symbols-outlined text-black text-3xl" style={{ fontVariationSettings: "'FILL' 1" }}>military_tech</span>;
-                } else if (user.rank === 3) {
-                  rowBg = "bg-[#CD7F32] hover:bg-[#B87333]";
-                  rankColor = "bg-[#CD7F32]";
-                  rankBadge = <span className="material-symbols-outlined text-black text-3xl" style={{ fontVariationSettings: "'FILL' 1" }}>military_tech</span>;
-                }
+                  if (user.rank === 1) {
+                    rowBg = "bg-[#FFD700] hover:bg-[#E6C200]";
+                    rankColor = "bg-[#FFD700]";
+                    rankBadge = <span className="material-symbols-outlined text-black text-3xl" style={{ fontVariationSettings: "'FILL' 1" }}>military_tech</span>;
+                  } else if (user.rank === 2) {
+                    rowBg = "bg-[#C0C0C0] hover:bg-[#A9A9A9]";
+                    rankColor = "bg-[#C0C0C0]";
+                    rankBadge = <span className="material-symbols-outlined text-black text-3xl" style={{ fontVariationSettings: "'FILL' 1" }}>military_tech</span>;
+                  } else if (user.rank === 3) {
+                    rowBg = "bg-[#CD7F32] hover:bg-[#B87333]";
+                    rankColor = "bg-[#CD7F32]";
+                    rankBadge = <span className="material-symbols-outlined text-black text-3xl" style={{ fontVariationSettings: "'FILL' 1" }}>military_tech</span>;
+                  }
 
-                if (user.isCurrentUser) {
-                  rowBg = "bg-[#FF00FF] hover:bg-[#E600E6] text-white";
-                }
+                  if (isCurrentUser) {
+                    rowBg = "bg-[#FF00FF] hover:bg-[#E600E6] text-white";
+                  }
 
-                return (
-                  <div 
-                    key={user.id} 
-                    className={`grid grid-cols-[60px_1fr_100px_100px] md:grid-cols-[80px_1fr_120px_120px] gap-4 px-6 py-4 items-center border-b-4 border-black last:border-b-0 transition-all duration-150 ${rowBg} group`}
-                  >
-                    {/* Rank */}
-                    <div className={`text-center font-jetbrains-mono font-black text-xl md:text-2xl flex items-center justify-center border-4 border-black w-12 h-12 md:w-16 md:h-16 shadow-[4px_4px_0_black] ${rankColor} mx-auto ${user.isCurrentUser ? 'text-black' : 'text-black'}`}>
-                      {rankBadge ? rankBadge : user.rank}
-                    </div>
-
-                    {/* Operative Info */}
-                    <div className="flex items-center gap-4 overflow-hidden">
-                      <div className="flex flex-col min-w-0">
-                        <span className={`font-black truncate text-lg md:text-xl uppercase ${user.isCurrentUser ? 'text-white' : 'text-black'}`}>
-                          {user.name}
-                        </span>
-                        {user.isCurrentUser && (
-                          <span className="text-xs font-jetbrains-mono font-black text-black bg-[#A3E635] px-2 py-0.5 border-2 border-black shadow-[2px_2px_0_black] uppercase tracking-wider w-max mt-1">
-                            You
-                          </span>
-                        )}
+                  return (
+                    <div 
+                      key={user.username} 
+                      className={`grid grid-cols-[60px_1fr_100px_100px] md:grid-cols-[80px_1fr_120px_120px] gap-4 px-6 py-4 items-center border-b-4 border-black last:border-b-0 transition-all duration-150 ${rowBg} group`}
+                    >
+                      {/* Rank */}
+                      <div className={`text-center font-jetbrains-mono font-black text-xl md:text-2xl flex items-center justify-center border-4 border-black w-12 h-12 md:w-16 md:h-16 shadow-[4px_4px_0_black] ${rankColor} mx-auto text-black`}>
+                        {rankBadge ? rankBadge : user.rank}
                       </div>
-                    </div>
 
-                    {/* Level */}
-                    <div className="text-right flex flex-col items-end justify-center">
-                      <span className={`text-lg md:text-2xl font-jetbrains-mono font-black ${user.isCurrentUser ? 'text-white' : 'text-black'}`}>
-                        {user.level}
-                      </span>
-                      <span className={`text-[10px] font-space-grotesk uppercase font-bold tracking-widest hidden md:block ${user.isCurrentUser ? 'text-white' : 'text-black'}`}>
-                        Level
-                      </span>
-                    </div>
+                      {/* Operative Info */}
+                      <div className="flex items-center gap-4 overflow-hidden">
+                        <div className="flex flex-col min-w-0">
+                          <span className={`font-black truncate text-lg md:text-xl uppercase ${isCurrentUser ? 'text-white' : 'text-black'}`}>
+                            {user.name}
+                          </span>
+                          {isCurrentUser && (
+                            <span className="text-xs font-jetbrains-mono font-black text-black bg-[#A3E635] px-2 py-0.5 border-2 border-black shadow-[2px_2px_0_black] uppercase tracking-wider w-max mt-1">
+                              You
+                            </span>
+                          )}
+                        </div>
+                      </div>
 
-                    {/* XP */}
-                    <div className="text-right flex flex-col items-end justify-center">
-                      <span className={`text-lg md:text-2xl font-jetbrains-mono font-black ${user.isCurrentUser ? 'text-[#00FFFF]' : 'text-black'}`}>
-                        {user.xp.toLocaleString()}
-                      </span>
-                      <span className={`text-[10px] font-space-grotesk uppercase font-bold tracking-widest hidden md:block ${user.isCurrentUser ? 'text-white' : 'text-black'}`}>
-                        XP
-                      </span>
-                    </div>
+                      {/* Level */}
+                      <div className="text-right flex flex-col items-end justify-center">
+                        <span className={`text-lg md:text-2xl font-jetbrains-mono font-black ${isCurrentUser ? 'text-white' : 'text-black'}`}>
+                          {user.level}
+                        </span>
+                        <span className={`text-[10px] font-space-grotesk uppercase font-bold tracking-widest hidden md:block ${isCurrentUser ? 'text-white' : 'text-black'}`}>
+                          Level
+                        </span>
+                      </div>
 
-                  </div>
-                );
-              })}
+                      {/* XP */}
+                      <div className="text-right flex flex-col items-end justify-center">
+                        <span className={`text-lg md:text-2xl font-jetbrains-mono font-black ${isCurrentUser ? 'text-[#00FFFF]' : 'text-black'}`}>
+                          {user.experience_points.toLocaleString()}
+                        </span>
+                        <span className={`text-[10px] font-space-grotesk uppercase font-bold tracking-widest hidden md:block ${isCurrentUser ? 'text-white' : 'text-black'}`}>
+                          XP
+                        </span>
+                      </div>
+
+                    </div>
+                  );
+                })
+              )}
             </div>
 
           </div>

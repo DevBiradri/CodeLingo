@@ -4,23 +4,25 @@ import secrets
 from datetime import datetime, timezone
 from uuid import uuid4
 
+import bcrypt
 import jwt
-
-from passlib.context import CryptContext
-
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 def normalize_email(email: str) -> str:
     return email.strip().lower()
 
 
+def _pre_hash(password: str) -> str:
+    """SHA-256 pre-hash to work around bcrypt's 72-byte input limit."""
+    return hashlib.sha256(password.encode("utf-8")).hexdigest()
+
+
 def hash_password(password: str) -> str:
-    return pwd_context.hash(password)
+    return bcrypt.hashpw(_pre_hash(password).encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
 
 
 def verify_password(password: str, password_hash: str) -> bool:
-    return pwd_context.verify(password, password_hash)
+    return bcrypt.checkpw(_pre_hash(password).encode("utf-8"), password_hash.encode("utf-8"))
 
 
 def generate_session_token() -> str:
