@@ -375,7 +375,7 @@ export default function SkillTreeMap() {
                               {sub.name}
                             </span>
                             {!isSubtopicLocked && !isSubtopicCompleted && (
-                              <span className="text-[10px] font-black text-black/60 uppercase">Progress: {completedCount}/5</span>
+                              <span className="text-[10px] font-black text-black/60 uppercase">Progress: {completedCount}/3</span>
                             )}
                           </div>
                           {!isEven && <span className={`material-symbols-outlined text-xl text-black`} style={{ transform: 'scaleX(-1)' }}>
