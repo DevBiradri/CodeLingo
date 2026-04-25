@@ -78,8 +78,8 @@ class GeminiService:
         else:
             self.client = genai.Client(api_key=self.settings.gemini_api_key)
 
-    async def generate_question(self, payload: GenerateQuestionRequest) -> GeneratedQuestion:
-        user_prompt = f"Topic: {payload.main_topic}\nSubtopic: {payload.subtopic}\nTip: {payload.educational_tip}"
+    async def generate_question(self, payload: GenerateQuestionRequest, language: str) -> GeneratedQuestion:
+        user_prompt = f"Topic: {payload.main_topic}\nSubtopic: {payload.subtopic}\nTip: {payload.educational_tip}\nTarget Language: {language}\n\nIMPORTANT: ALL code snippets and challenges MUST be written in {language}."
         raw = await self._generate_simple_json(
             model=self.settings.gemini_generation_model,
             system_prompt=QUESTION_GENERATION_SYSTEM_PROMPT,

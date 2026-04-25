@@ -32,14 +32,15 @@ async def get_question(
 async def generate_question(
     payload: GenerateQuestionRequest,
     service: QuestionServiceDep,
-    _current_user: CurrentUser,
+    current_user: CurrentUser,
 ) -> GenerateQuestionResponse:
     """Generate a new question using the Gemini LLM.
 
     Returns a `question_key` that must be passed to `/questions/verify`
     within the cache TTL window (default 30 minutes).
     """
-    return await service.generate_question(payload)
+    language = current_user.preferred_languages[0] if current_user.preferred_languages else "Python"
+    return await service.generate_question(payload, language)
 
 
 @router.post("/verify", response_model=VerifyQuestionResponse)

@@ -71,6 +71,9 @@ export default function ProfilePage() {
                 <span className="font-jetbrains-mono font-bold uppercase text-sm bg-[#A3E635] text-black px-3 py-1 border-2 border-black">
                   {progress?.level_name || "Newcomer"}
                 </span>
+                <span className="font-jetbrains-mono font-bold uppercase text-sm bg-[#00FFFF] text-black px-3 py-1 border-2 border-black">
+                  {user.preferred_languages?.[0] || 'Language Unset'}
+                </span>
               </div>
               <p className="font-jetbrains-mono font-bold uppercase text-black/60 tracking-widest text-sm">
                 ID: {user.id.split('-')[0].toUpperCase()}
