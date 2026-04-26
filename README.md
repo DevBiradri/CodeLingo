@@ -1,7 +1,7 @@
 # 🚀 CodeLingo 
 
 > **Learn Code By Doing.** 
-Duolingo for coding, but neobrutalism style.
+Duolingo for coding.
 
 ![CodeLingo Banner](frontend/public/cover.png)
 
@@ -59,14 +59,9 @@ CodeLingo is built using a modern, scalable, and fully asynchronous stack:
 - Python (3.10+)
 - PostgreSQL
 - A Google Gemini API Key
+- GNU Make
 
-### 1. Backend Setup
-```bash
-cd backend
-python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-```
+### 1. Configure Environment Files
 
 Create a `.env` file in the `backend/` directory:
 ```env
@@ -75,24 +70,60 @@ SECRET_KEY=your_super_secret_jwt_key
 GEMINI_API_KEY=your_google_gemini_key
 ```
 
-Run the FastAPI server:
-```bash
-uvicorn backend.app.main:app --reload --port 8000
-```
-
-### 2. Frontend Setup
-```bash
-cd frontend
-npm install
-```
-
 Create a `.env.local` file in the `frontend/` directory (if needed):
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1
 ```
 
-Run the Next.js development server:
+### 2. Prepare Dependencies (Recommended)
+
+From the repository root:
 ```bash
+make prepare
+```
+
+This command will:
+- Create `./.venv` if missing
+- Install backend dependencies from `backend/requirements.txt`
+- Install frontend dependencies in `frontend/`
+
+### 3. Run Backend + Frontend Together
+
+From the repository root:
+```bash
+make dev
+```
+
+### 4. View Logs
+
+From the repository root:
+```bash
+make logs
+```
+
+Or view service-specific logs:
+```bash
+make logs-backend
+make logs-frontend
+```
+
+Clear log files:
+```bash
+make clean-logs
+```
+
+### Manual Alternative (Without Make)
+
+If you prefer to run services manually:
+
+Backend:
+```bash
+./.venv/bin/python -m uvicorn backend.app.main:app --reload --port 8000
+```
+
+Frontend:
+```bash
+cd frontend
 npm run dev
 ```
 

@@ -4,3 +4,5 @@ logs/
 .venv/
 .agents/
 package-lock.json
+*.db
+codequest.db
