@@ -1,0 +1,8 @@
+logs/
+.vscode/
+.github/
+.venv/
+.agents/
+package-lock.json
+*.db
+codequest.db
